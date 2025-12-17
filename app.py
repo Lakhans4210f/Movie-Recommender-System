@@ -1,5 +1,6 @@
 import streamlit as st
 from src.recommender import load_data, recommend
+from src.tmdb_api import cached_fetch_poster
 
 # ---------- Page config ----------
 st.set_page_config(
@@ -78,8 +79,6 @@ with st.sidebar:
 # ---------- Main layout with tabs ----------
 tab1, tab2 = st.tabs(["🔍 Recommend", "📚 Explore dataset"])
 
-from src.tmdb_api import fetch_poster  # imported here to avoid circular import
-
 with tab1:
     st.subheader("Find similar movies")
 
@@ -96,12 +95,13 @@ with tab1:
             "Pick a movie and get similar recommendations based on content features."
         )
 
-    # Selected movie poster + info
+    # Selected movie poster + info with spinner + cache
     if selected_movie:
         sel_id = movies.loc[
             movies["title"] == selected_movie, "movie_id"
         ].values[0]
-        sel_poster, sel_meta = fetch_poster(sel_id)
+        with st.spinner("Loading selected movie details..."):
+            sel_poster, sel_meta = cached_fetch_poster(sel_id)
 
         st.markdown("### Selected movie")
         c1, c2 = st.columns([1, 2])

@@ -1,4 +1,5 @@
 import requests
+import streamlit as st
 
 API_KEY = "8265bd1679663a7ea12ac168da84d2e8"
 
@@ -17,3 +18,7 @@ def fetch_poster(movie_id):
             return "https://via.placeholder.com/500x750?text=No+Image", data
     except Exception:
         return "https://via.placeholder.com/500x750?text=Error", {}
+
+@st.cache_data(show_spinner=False)
+def cached_fetch_poster(movie_id):
+    return fetch_poster(movie_id)

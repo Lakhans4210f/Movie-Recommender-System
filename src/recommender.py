@@ -1,7 +1,7 @@
 import pickle
 import pandas as pd
 import numpy as np
-from .tmdb_api import fetch_poster
+from .tmdb_api import cached_fetch_poster
 
 def load_data(
     movie_path: str = "data/movie_dict.pkl",
@@ -23,7 +23,6 @@ def recommend(movie: str, movies, similarity, top_n: int = 5):
         return [], [], []
 
     movie_index = movies[movies["title"] == movie].index[0]
-
     distances = np.array(similarity[movie_index], dtype=float)
 
     movies_list = sorted(
@@ -40,7 +39,7 @@ def recommend(movie: str, movies, similarity, top_n: int = 5):
         movie_row = movies.iloc[i]
         movie_id = movie_row.movie_id
 
-        poster_url, meta = fetch_poster(movie_id)
+        poster_url, meta = cached_fetch_poster(movie_id)
 
         year = None
         rating = None
