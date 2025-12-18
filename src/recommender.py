@@ -4,13 +4,15 @@ import pandas as pd
 import numpy as np
 import requests
 
-from src.tmdb_api import cached_fetch_poster  # absolute import
+from src.tmdb_api import cached_fetch_poster
 
-MOVIE_PATH = "data/movie_dict.pkl"
-SIM_PATH = "data/similarity.pkl"
+# Use new file names so Streamlit Cloud downloads fresh, correct pickles
+MOVIE_PATH = "data/movie_dict_v2.pkl"
+SIM_PATH = "data/similarity_v2.pkl"
 
+# Direct-download links for Google Drive
 MOVIE_URL = "https://drive.google.com/uc?export=download&id=1CTqPbcArGDjHC3Zmv4nMPox2KW3hIbhw"
-SIM_URL   = "https://drive.google.com/uc?export=download&id=1tCM6YIEycTvWOhzZO4wc8Xtb1FIW1GKq"
+SIM_URL = "https://drive.google.com/uc?export=download&id=1tCM6YIEycTvWOhzZO4wc8Xtb1FIW1GKq"
 
 
 def _download_file(url: str, path: str) -> None:
@@ -31,6 +33,7 @@ def ensure_files() -> None:
 
 
 def load_data(movie_path: str = MOVIE_PATH, sim_path: str = SIM_PATH):
+    """Download (if needed) and load movies DataFrame and similarity matrix."""
     ensure_files()
 
     with open(movie_path, "rb") as f:
@@ -49,7 +52,7 @@ def load_data(movie_path: str = MOVIE_PATH, sim_path: str = SIM_PATH):
 
 
 def recommend(movie_title: str, movies, similarity, top_n: int = 5):
-    """Return top_n similar movies and their posters."""
+    """Return list of (title, poster_url) for top_n similar movies."""
     movie_title = movie_title.strip().lower()
     titles = movies["title"].str.lower()
 
@@ -73,3 +76,4 @@ def recommend(movie_title: str, movies, similarity, top_n: int = 5):
         recommendations.append((title, poster))
 
     return recommendations
+
