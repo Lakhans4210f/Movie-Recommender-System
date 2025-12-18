@@ -39,4 +39,8 @@ def fetch_poster(movie_id):
 
 @st.cache_data(show_spinner=False)
 def cached_fetch_poster(movie_id):
+<<<<<<< HEAD
     return fetch_poster(movie_id)
+=======
+    return fetch_poster(movie_id)
+>>>>>>> 8f12911ff497794c6113937b6ca24b5de8c97875

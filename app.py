@@ -1,3 +1,15 @@
+import os
+import sys
+
+# Ensure root directory is on sys.path (needed on Streamlit Cloud)
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
+
+import streamlit as st
+from src.recommender import load_data, recommend
+from src.tmdb_api import cached_fetch_poster
+
 import streamlit as st
 from src.recommender import load_data, recommend
 from src.tmdb_api import cached_fetch_poster
