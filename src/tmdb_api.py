@@ -2,7 +2,17 @@ import os
 import requests
 import streamlit as st
 
-API_KEY = os.getenv("TMDB_API_KEY")
+def _get_api_key():
+    env_key = os.getenv("TMDB_API_KEY")
+    if env_key:
+        return env_key
+    try:
+        return st.secrets["TMDB_API_KEY"]
+    except Exception:
+        return None
+
+API_KEY = _get_api_key()
+
 
 def fetch_poster(movie_id):
     if not API_KEY:
@@ -26,7 +36,7 @@ def fetch_poster(movie_id):
     except Exception:
         return "https://via.placeholder.com/500x750?text=Error", {}
 
+
 @st.cache_data(show_spinner=False)
 def cached_fetch_poster(movie_id):
     return fetch_poster(movie_id)
-
