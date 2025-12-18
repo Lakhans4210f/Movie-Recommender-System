@@ -1,18 +1,14 @@
 import os
 import sys
+import streamlit as st
+
+from src.recommender import load_data, recommend
+from src.tmdb_api import cached_fetch_poster
 
 # Ensure root directory is on sys.path (needed on Streamlit Cloud)
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
-
-import streamlit as st
-from src.recommender import load_data, recommend
-from src.tmdb_api import cached_fetch_poster
-
-import streamlit as st
-from src.recommender import load_data, recommend
-from src.tmdb_api import cached_fetch_poster
 
 # ---------- Page config ----------
 st.set_page_config(
@@ -107,7 +103,7 @@ with tab1:
             "Pick a movie and get similar recommendations based on content features."
         )
 
-    # Selected movie poster + info with spinner + cache
+    # Selected movie poster + info
     if selected_movie:
         sel_id = movies.loc[
             movies["title"] == selected_movie, "movie_id"
@@ -118,7 +114,8 @@ with tab1:
         st.markdown("### Selected movie")
         c1, c2 = st.columns([1, 2])
         with c1:
-            st.image(sel_poster, width=230)
+            if sel_poster:
+                st.image(sel_poster, width=230)
         with c2:
             st.write(selected_movie)
             if sel_meta.get("release_date"):
@@ -145,7 +142,8 @@ with tab1:
                         '<div class="movie-card">', unsafe_allow_html=True
                     )
 
-                    st.image(posters[idx], width=230)
+                    if posters[idx]:
+                        st.image(posters[idx], width=230)
 
                     st.markdown(
                         f'<div class="movie-title">{name}</div>',
@@ -190,3 +188,4 @@ with tab2:
     st.subheader("Dataset preview")
     st.markdown("Preview of the movies used in this recommender.")
     st.dataframe(movies.head(50))
+
