@@ -19,20 +19,28 @@ def _get_api_key():
 
 @st.cache_data(show_spinner=False)
 def cached_fetch_poster(movie_id: int):
-    """Return poster URL for a movie id, or None if not available."""
+    """
+    Return (poster_url, meta_dict) for a movie id.
+
+    poster_url: str or None
+    meta_dict: dict with keys from TMDB response (may be empty if no key).
+    """
     api_key = _get_api_key()
     if not api_key:
-        return None
+        # No key available: no poster, empty meta
+        return None, {}
 
     url = TMDB_BASE_URL.format(movie_id, api_key)
-    r = requests.get(url, timeout=10)
+    try:
+        r = requests.get(url, timeout=10)
+    except Exception:
+        return None, {}
+
     if r.status_code != 200:
-        return None
+        return None, {}
 
-    data = r.json()
+    data = r.json() or {}
     poster_path = data.get("poster_path")
-    if not poster_path:
-        return None
+    poster_url = TMDB_IMG_BASE_URL + poster_path if poster_path else None
 
-    return TMDB_IMG_BASE_URL + poster_path
-
+    return poster_url, data
