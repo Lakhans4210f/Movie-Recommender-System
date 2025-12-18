@@ -1,41 +1,15 @@
-import os
 import pickle
 import pandas as pd
 import numpy as np
-import requests
 
 from src.tmdb_api import cached_fetch_poster
 
-# Use new file names so Streamlit Cloud downloads fresh, correct pickles
-MOVIE_PATH = "data/movie_dict_v2.pkl"
-SIM_PATH = "data/similarity_v2.pkl"
-
-# Direct-download links for Google Drive
-MOVIE_URL = "https://drive.google.com/uc?export=download&id=1CTqPbcArGDjHC3Zmv4nMPox2KW3hIbhw"
-SIM_URL = "https://drive.google.com/uc?export=download&id=1tCM6YIEycTvWOhzZO4wc8Xtb1FIW1GKq"
-
-
-def _download_file(url: str, path: str) -> None:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    r = requests.get(url, stream=True)
-    r.raise_for_status()
-    with open(path, "wb") as f:
-        for chunk in r.iter_content(chunk_size=8192):
-            if chunk:
-                f.write(chunk)
-
-
-def ensure_files() -> None:
-    if not os.path.exists(MOVIE_PATH):
-        _download_file(MOVIE_URL, MOVIE_PATH)
-    if not os.path.exists(SIM_PATH):
-        _download_file(SIM_URL, SIM_PATH)
+MOVIE_PATH = "data/movie_dict.pkl"
+SIM_PATH = "data/similarity.pkl"
 
 
 def load_data(movie_path: str = MOVIE_PATH, sim_path: str = SIM_PATH):
-    """Download (if needed) and load movies DataFrame and similarity matrix."""
-    ensure_files()
-
+    """Load movies DataFrame and similarity matrix from local data/ folder."""
     with open(movie_path, "rb") as f:
         movies_dict = pickle.load(f)
     movies = pd.DataFrame(movies_dict)
@@ -76,4 +50,3 @@ def recommend(movie_title: str, movies, similarity, top_n: int = 5):
         recommendations.append((title, poster))
 
     return recommendations
-
