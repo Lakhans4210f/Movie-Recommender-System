@@ -1,5 +1,6 @@
 import os
 import pickle
+import gzip
 import pandas as pd
 import numpy as np
 from src.tmdb_api import cached_fetch_poster
@@ -9,16 +10,19 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT_DIR, "data")
 
 MOVIE_PATH = os.path.join(DATA_DIR, "movie_dict.pkl")
-SIM_PATH = os.path.join(DATA_DIR, "similarity.pkl")
+# Your file in GitHub is similarity.pkl.gz
+SIM_PATH = os.path.join(DATA_DIR, "similarity.pkl.gz")
 
 
 def load_data(movie_path: str = MOVIE_PATH, sim_path: str = SIM_PATH):
     """Load movies DataFrame and similarity matrix from data/ folder."""
+    # movies
     with open(movie_path, "rb") as f:
         movies_dict = pickle.load(f)
     movies = pd.DataFrame(movies_dict)
 
-    with open(sim_path, "rb") as f:
+    # similarity (gzipped pickle)
+    with gzip.open(sim_path, "rb") as f:
         similarity = pickle.load(f)
 
     if isinstance(similarity, pd.DataFrame):
@@ -60,7 +64,7 @@ def recommend(movie_title: str, movies, similarity, top_n: int = 5):
         title = row["title"]
         movie_id = int(row["movie_id"])
 
-        # Expect cached_fetch_poster to return (poster_url, meta_dict)
+        # cached_fetch_poster should return (poster_url, meta_dict)
         poster_url, meta = cached_fetch_poster(movie_id)
 
         names.append(title)
@@ -68,7 +72,9 @@ def recommend(movie_title: str, movies, similarity, top_n: int = 5):
 
         meta_dict = {
             "rating": meta.get("vote_average"),
-            "year": meta.get("release_date", "")[:4] if meta.get("release_date") else None,
+            "year": meta.get("release_date", "")[:4]
+            if meta.get("release_date")
+            else None,
             "overview": meta.get("overview"),
             "tmdb_id": meta.get("id"),
         }
