@@ -2,13 +2,13 @@ import os
 import sys
 import streamlit as st
 
-from src.recommender import load_data, recommend
-from src.tmdb_api import cached_fetch_poster
-
 # Ensure root directory is on sys.path (needed on Streamlit Cloud)
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
+
+from src.recommender import load_data, recommend
+from src.tmdb_api import cached_fetch_poster
 
 # ---------- Page config ----------
 st.set_page_config(
@@ -89,7 +89,6 @@ tab1, tab2 = st.tabs(["🔍 Recommend", "📚 Explore dataset"])
 
 with tab1:
     st.subheader("Find similar movies")
-
     col_left, col_right = st.columns([2, 1])
 
     with col_left:
@@ -108,14 +107,17 @@ with tab1:
         sel_id = movies.loc[
             movies["title"] == selected_movie, "movie_id"
         ].values[0]
+
         with st.spinner("Loading selected movie details..."):
             sel_poster, sel_meta = cached_fetch_poster(sel_id)
 
         st.markdown("### Selected movie")
         c1, c2 = st.columns([1, 2])
+
         with c1:
             if sel_poster:
                 st.image(sel_poster, width=230)
+
         with c2:
             st.write(selected_movie)
             if sel_meta.get("release_date"):
@@ -134,7 +136,6 @@ with tab1:
 
         if names and posters:
             cols = st.columns(min(top_n, 5))
-
             for idx, name in enumerate(names):
                 col = cols[idx % len(cols)]
                 with col:
@@ -156,6 +157,7 @@ with tab1:
                         meta_text_parts.append(f"⭐ {meta['rating']:.1f}")
                     if show_rating and meta.get("year"):
                         meta_text_parts.append(f"📅 {meta['year']}")
+
                     if meta_text_parts:
                         st.markdown(
                             f'<div class="movie-meta">{" • ".join(meta_text_parts)}</div>',
@@ -174,7 +176,9 @@ with tab1:
                         )
 
                     if meta.get("tmdb_id"):
-                        tmdb_url = f"https://www.themoviedb.org/movie/{meta['tmdb_id']}"
+                        tmdb_url = (
+                            f"https://www.themoviedb.org/movie/{meta['tmdb_id']}"
+                        )
                         st.markdown(
                             f"[🔗 More details]({tmdb_url})",
                             unsafe_allow_html=True,
