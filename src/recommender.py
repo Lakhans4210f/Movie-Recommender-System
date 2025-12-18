@@ -1,12 +1,33 @@
+import os
 import pickle
 import pandas as pd
 import numpy as np
+import requests
 from .tmdb_api import cached_fetch_poster
 
-def load_data(
-    movie_path: str = "data/movie_dict.pkl",
-    sim_path: str = "data/similarity.pkl",
-):
+MOVIE_PATH = "data/movie_dict.pkl"
+SIM_PATH = "data/similarity.pkl"
+
+MOVIE_URL = "https://drive.google.com/file/d/1CTqPbcArGDjHC3Zmv4nMPox2KW3hIbhw/view?usp=sharing"       # TODO: replace
+SIM_URL = "https://drive.google.com/file/d/1tCM6YIEycTvWOhzZO4wc8Xtb1FIW1GKq/view?usp=sharing"         # TODO: replace
+
+def _download_file(url, path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    r = requests.get(url, stream=True)
+    r.raise_for_status()
+    with open(path, "wb") as f:
+        for chunk in r.iter_content(chunk_size=8192):
+            f.write(chunk)
+
+def ensure_files():
+    if not os.path.exists(MOVIE_PATH):
+        _download_file(MOVIE_URL, MOVIE_PATH)
+    if not os.path.exists(SIM_PATH):
+        _download_file(SIM_URL, SIM_PATH)
+
+def load_data(movie_path: str = MOVIE_PATH, sim_path: str = SIM_PATH):
+    ensure_files()
+
     movies_dict = pickle.load(open(movie_path, "rb"))
     movies = pd.DataFrame(movies_dict)
 
@@ -18,48 +39,3 @@ def load_data(
 
     return movies, similarity
 
-def recommend(movie: str, movies, similarity, top_n: int = 5):
-    if movie not in movies["title"].values:
-        return [], [], []
-
-    movie_index = movies[movies["title"] == movie].index[0]
-    distances = np.array(similarity[movie_index], dtype=float)
-
-    movies_list = sorted(
-        list(enumerate(distances)),
-        reverse=True,
-        key=lambda x: x[1],
-    )[1 : top_n + 1]
-
-    recommended_movies = []
-    recommended_posters = []
-    meta_info = []
-
-    for i, score in movies_list:
-        movie_row = movies.iloc[i]
-        movie_id = movie_row.movie_id
-
-        poster_url, meta = cached_fetch_poster(movie_id)
-
-        year = None
-        rating = None
-        overview = None
-        tmdb_id = None
-        if meta:
-            year = (meta.get("release_date") or "")[:4]
-            rating = meta.get("vote_average")
-            overview = meta.get("overview")
-            tmdb_id = meta.get("id")
-
-        recommended_movies.append(movie_row.title)
-        recommended_posters.append(poster_url)
-        meta_info.append(
-            {
-                "year": year,
-                "rating": rating,
-                "overview": overview,
-                "tmdb_id": tmdb_id,
-            }
-        )
-
-    return recommended_movies, recommended_posters, meta_info
