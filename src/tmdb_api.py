@@ -2,7 +2,12 @@ import os
 import requests
 import streamlit as st
 
+TMDB_BASE_URL = "https://api.themoviedb.org/3/movie/{}?api_key={}&language=en-US"
+TMDB_IMG_BASE_URL = "https://image.tmdb.org/t/p/w500"
+
+
 def _get_api_key():
+    """Read TMDB API key from env or Streamlit secrets."""
     env_key = os.getenv("TMDB_API_KEY")
     if env_key:
         return env_key
@@ -11,36 +16,23 @@ def _get_api_key():
     except Exception:
         return None
 
-API_KEY = _get_api_key()
-
-
-def fetch_poster(movie_id):
-    if not API_KEY:
-        return "https://via.placeholder.com/500x750?text=API+Key+Missing", {}
-
-    url = (
-        f"https://api.themoviedb.org/3/movie/{movie_id}"
-        f"?api_key={API_KEY}&language=en-US"
-    )
-
-    try:
-        response = requests.get(url, timeout=5)
-        data = response.json()
-
-        poster_path = data.get("poster_path")
-        if poster_path:
-            return "https://image.tmdb.org/t/p/w500" + poster_path, data
-        else:
-            return "https://via.placeholder.com/500x750?text=No+Image", data
-
-    except Exception:
-        return "https://via.placeholder.com/500x750?text=Error", {}
-
 
 @st.cache_data(show_spinner=False)
-def cached_fetch_poster(movie_id):
-<<<<<<< HEAD
-    return fetch_poster(movie_id)
-=======
-    return fetch_poster(movie_id)
->>>>>>> 8f12911ff497794c6113937b6ca24b5de8c97875
+def cached_fetch_poster(movie_id: int):
+    """Return poster URL for a movie id, or None if not available."""
+    api_key = _get_api_key()
+    if not api_key:
+        return None
+
+    url = TMDB_BASE_URL.format(movie_id, api_key)
+    r = requests.get(url, timeout=10)
+    if r.status_code != 200:
+        return None
+
+    data = r.json()
+    poster_path = data.get("poster_path")
+    if not poster_path:
+        return None
+
+    return TMDB_IMG_BASE_URL + poster_path
+
